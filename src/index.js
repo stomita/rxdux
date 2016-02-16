@@ -1,76 +1,9 @@
-import { Observable, Subject, BehaviorSubject, ReplaySubject } from 'rx';
-import { createSelector } from 'reselect';
+import { Observable, BehaviorSubject, ReplaySubject } from 'rx';
+import { toObservable, toPromise } from './utils';
 
-function isObservable(o) {
-  return o !== null && typeof o === 'object' && typeof o.subscribe === 'function';
-}
 
-function isPromiseLike(o) {
-  return o !== null && typeof o === 'object' && typeof o.then === 'function';
-}
-
-function isGenerator(o) {
-  return o !== null && typeof o === 'object' && typeof o.next === 'function' && typeof o.throw === 'function';
-}
-
-function isGeneratorFunction(o) {
-  if (typeof o !== 'function') { return false; }
-  const constructor = o && o.constructor;
-  return !!constructor && (
-    constructor.name === 'GeneratorFunction' ||
-    constructor.displayName === 'GeneratorFunction' ||
-    isGenerator(constructor.prototype)
-  );
-}
-
-function fromGenerator(gen) {
-  gen = isGeneratorFunction(gen) ? gen() : isGenerator(gen) ? gen : null;
-  const sub$ = new ReplaySubject(1);
-  function onNext(value) {
-    sub$.onNext(value);
-    let ret;
-    try {
-      ret = gen.next(value);
-    } catch(e) {
-      return sub$.onError(e);
-    }
-    processNext(ret);
-  }
-  function onError(err) {
-    let ret;
-    try {
-      ret = gen.throw(err);
-    } catch(e) {
-      return sub$.onError(e);
-    }
-    processNext(ret);
-  }
-  function processNext(ret) {
-    if (ret.done) { return sub$.onCompleted(); }
-    toPromise(ret.value).then(onNext, onError);
-  }
-  onNext();
-  return sub$.skip(1);
-}
-
-export function toPromise(o) {
-  return new Promise((resolve, reject) => {
-    toObservable(o).last().subscribe(resolve, reject);
-  });
-}
-
-export function toObservable(o) {
-  return (
-    isObservable(o) ? o :
-    isPromiseLike(o) ? Observable.fromPromise(o) :
-    isGeneratorFunction(o) || isGenerator(o) ? fromGenerator(o) :
-    Observable.of(o)
-  );
-}
-
-function defaultErrorHandler(err, prevState) {
+function defaultErrorRecoveryHandler(err, prevState) {
   console.log('*** error =', err);
-  console.log(err.stack);
   return prevState;
 }
 
@@ -107,6 +40,9 @@ function createState(reducer, action$, errorHandler) {
   ;
 }
 
+/**
+ *
+ */
 export function combineReducers(reducers) {
   const rnames = Object.keys(reducers);
   return (state, action) => {
@@ -123,25 +59,44 @@ export function combineReducers(reducers) {
   }
 }
 
-export function combineReducerWithSelector(reducer, inputSelectors, resultFunc) {
-  const selector = createSelector(inputSelectors, resultFunc);
-  let lastSelection;
+/**
+ *
+ */
+export function assignSelectors(reducer, selectors) {
   return (state, action) => {
+    const sprops = Object.keys(selectors);
+    const lastSelections = {};
     return toObservable(reducer(state, action))
-      .flatMap((newState) => {
-        let currentSelection;
-        return toObservable(selector(newState))
-          .doAction((selection) => currentSelection = selection)
-          .map((selection) => lastSelection !== selection ? { ...newState, ...selection } : newState)
-          .doAction(() => lastSelection = currentSelection)
+      .flatMapLatest((newState) => {
+        const selections = sprops.map((prop) => {
+          const lastSelection = lastSelections[prop];
+          const selector = selectors[prop];
+          const selection$ = toObservable(selector(newState));
+          return (
+            typeof lastSelection === 'undefined' ?
+            selection$ :
+            selection$.startWith(lastSelection)
+          )
+          .distinctUntilChanged()
+          .map((value) => ({ prop, value }));
+        });
+        return Observable.of(newState)
+          .concat(Observable.merge(...selections))
+          .scan((prevState, { prop, value }) => {
+            lastSelections[prop] = value;
+            return prevState[prop] !== value ? { ...prevState, [prop]: value } : prevState;
+          })
+          .debounce(0)
         ;
       })
-      .shareReplay(1)
     ;
   };
 }
 
-export function createStore(reducer, errorRecoveryHandler = defaultErrorHandler) {
+/**
+ *
+ */
+export function createStore(reducer, errorRecoveryHandler = defaultErrorRecoveryHandler) {
   const action$ = new BehaviorSubject({ type: '$INIT' });
   const state$ = createState(reducer, action$, errorRecoveryHandler);
   return {
@@ -150,3 +105,8 @@ export function createStore(reducer, errorRecoveryHandler = defaultErrorHandler)
     getState: () => state$.getValue()
   };
 }
+
+/**
+ *
+ */
+export { toObservable, toPromise };

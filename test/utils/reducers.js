@@ -1,10 +1,7 @@
-import Rx, { Observable } from 'rx';
+import { Observable } from 'rx';
+import wait from './wait';
 
-function wait(msec) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), msec);
-  });
-}
+export function identityReducer(state) { return state; }
 
 export function numReducer(state = 0, action) {
   switch (action.type) {
@@ -23,6 +20,17 @@ export function boolReducer(state = false, action) {
       return !state;
     case 'RESET':
       return false;
+    default:
+      return state;
+  }
+}
+
+export function stringReducer(state = '', action) {
+  switch (action.type) {
+    case 'APPEND':
+      return state + action.value;
+    case 'RESET':
+      return '';
     default:
       return state;
   }
@@ -67,14 +75,15 @@ export function resultGeneratorReducer(state = { records: [], loading: false }, 
         state = { ...state, loading: true };
         yield state;
         yield function*() {
-          yield wait(100)
-          const records = [1,2,3].map((id) => `${action.keyword} #${id}`);
+          yield wait(100);
+          const records = [1, 2, 3].map((id) => `${action.keyword} #${id}`);
           yield { ...state, records, loading: false };
         };
       };
     case 'RESET':
-      const gen = function*() { yield { records: [], loading: false }; };
-      return gen();
+      return (function*() {
+        yield { records: [], loading: false };
+      })();
     default:
       return state;
   }
