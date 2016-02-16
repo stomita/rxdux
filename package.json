@@ -6,7 +6,8 @@
   "scripts": {
     "build": "babel src -d lib",
     "test": "mocha --require babel-register --require babel-polyfill",
-    "test:watch": "npm test && chokidar \"**/*.js\" -c \"npm test\""
+    "test:watch": "npm test && chokidar \"**/*.js\" -c \"npm test\"",
+    "coverage": "babel-node ./node_modules/.bin/isparta cover _mocha"
   },
   "files": [
     "lib"
@@ -25,6 +26,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "babel-register": "^6.5.2",
     "chokidar": "^1.4.2",
+    "isparta": "^4.0.0",
     "mocha": "^2.4.5",
     "power-assert": "^1.2.0"
   }
