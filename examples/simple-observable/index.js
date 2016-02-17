@@ -13,7 +13,7 @@ function fruits(state = initialFruitsState, action) {
       const state$ = new BehaviorSubject({ ...state, loading: true });
       fetchFruits((err, records) => {
         if (err) { return state$.onError(err) }
-        state$.onNext({ loading: false, records });
+        state$.onNext({ records, loading: false });
         state$.onCompleted();
       });
       return state$;
@@ -28,10 +28,10 @@ function fruits(state = initialFruitsState, action) {
 const store = createStore(fruits);
 
 store.subscribe((state) => {
-  console.log(state);
+  console.log('state => ', state);
 });
 
-// => { loading: false, records: [] }
+// => { records: [], loading: false }
 
 wait(1000)
 .then(() => {
@@ -39,11 +39,11 @@ wait(1000)
 })
 .then(() => wait(1000))
 
-// => { loading: true, records: [] }
-// => { loading: false, records: ['apple', 'orange', 'banana'] }
+// => { records: [], loading: true }
+// => { records: ['apple', 'orange', 'banana'], loading: false }
 
 .then(() => {
   store.dispatch({ type: 'CLEAR_FRUITS' });
 });
 
-// => { loading: false, records: [] }
+// => { records: [], loading: false }

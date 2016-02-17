@@ -1,9 +1,10 @@
 import { Observable, BehaviorSubject, ReplaySubject } from 'rx';
 import { toObservable, toPromise } from './utils';
 
+const DEBUG = process.env.DEBUG;
 
 function defaultErrorRecoveryHandler(err, prevState) {
-  console.log('*** error =', err);
+  if (DEBUG) { console.error('*** error =', err); }
   return prevState;
 }
 
@@ -16,7 +17,7 @@ function createState(reducer, action$, errorHandler) {
       const recoveryState$ = new ReplaySubject(1);
       prevState$
         .last()
-        .doAction(() => console.log('>>> action =', action))
+        .doAction(() => DEBUG && console.log('>>> action =', action))
         .map((prevState) => {
           const state$ = toObservable(reducer(prevState, action));
           state$.subscribeOnError((err) => {
@@ -27,7 +28,7 @@ function createState(reducer, action$, errorHandler) {
         })
         .flatMap((state$) => state$)
         .catch(recoveryState$)
-        .doAction(console.log.bind(console, '### state changed ='))
+        .doAction((state) => DEBUG && console.log('### state =>', state))
         .subscribe(nextState$)
       ;
       return nextState$;
@@ -97,7 +98,7 @@ export function assignSelectors(reducer, selectors) {
  *
  */
 export function createStore(reducer, errorRecoveryHandler = defaultErrorRecoveryHandler) {
-  const action$ = new BehaviorSubject({ type: '$INIT' });
+  const action$ = new BehaviorSubject({ type: '@@rxdux/INIT' });
   const state$ = createState(reducer, action$, errorRecoveryHandler);
   return {
     dispatch: (action) => action$.onNext(action),

@@ -26,7 +26,7 @@ function fruits(state = initialFruitsState, action) {
 const store = createStore(fruits);
 
 store.subscribe((state) => {
-  console.log(state);
+  console.log('state => ', state);
 });
 
 store.dispatch({ type: 'CLEAR_FRUITS' });
