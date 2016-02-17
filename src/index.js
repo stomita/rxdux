@@ -19,7 +19,7 @@ function createState(reducer, action$, errorHandler) {
         .last()
         .doAction(() => DEBUG && console.log('>>> action =', action))
         .map((prevState) => {
-          const state$ = toObservable(reducer(prevState, action));
+          const state$ = toObservable(reducer(prevState, action)).share();
           state$.subscribeOnError((err) => {
             toObservable(errorHandler(err, prevState))
               .subscribe(recoveryState$);
