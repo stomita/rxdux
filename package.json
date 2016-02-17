@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Yet another flux implementation based on redux with asynchronous reducer feature",
   "main": "./lib/index.js",
+  "jsnext:main": "./src/index.js",
   "scripts": {
     "prepublish": "npm run build",
     "build": "babel src -d lib",
@@ -11,9 +12,22 @@
     "coverage": "babel-node ./node_modules/.bin/isparta cover _mocha"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stomita/rxdux.git"
+  },
+  "keywords": [
+    "redux",
+    "async",
+    "rx",
+    "rxjs",
+    "flux"
   ],
   "author": "Shinichi Tomita <shinichi.tomita@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "reselect": "^2.0.3",
     "rx": "^4.0.7"
