@@ -22,33 +22,35 @@ import { createStore } from 'rxdux';
 
 // `fetchFruits` will return an array fruits ('apple','orange','banana')
 // in node.js style callback function.
-import fetchFruits from './fetchFruits';
+import { createStore } from 'rxdux';
+import fetchFruits from '../utils/fetchFruits';
+import wait from '../utils/wait';
 
-const initalFruitsState = [];
+const initialFruitsState = [];
 
 // Reducer
-function fruits(state = initalFruitsState, action) {
+function fruits(state = initialFruitsState, action) {
   switch (action.type) {
-  case 'FETCH_FRUITS':
-    // can return a Promise object for future change of state
-    return new Promise((resolve, reject) => {
-      fetchFruits((err, records) => {
-        if (err) { return reject(err) }
-        resolve(records);
+    case 'FETCH_FRUITS':
+      // can return a Promise object for future change of state
+      return new Promise((resolve, reject) => {
+        fetchFruits((err, records) => {
+          if (err) { return reject(err) }
+          resolve(records);
+        });
       });
-    });
-  case 'CLEAR_FRUITS':
-    // can also return synchronous state change, of course.
-    return initalFruitsState;
-  default:
-    return state;
+    case 'CLEAR_FRUITS':
+      // can also return synchronous state change, of course.
+      return initialFruitsState;
+    default:
+      return state;
   }
 }
 
-let store = createStore(fluits);
+const store = createStore(fruits);
 
-store.subscribe((records) => {
-  console.log(records);
+store.subscribe((state) => {
+  console.log(state);
 });
 
 // => []
@@ -70,32 +72,32 @@ import { createStore } from 'rxdux';
 import { BehaviorSubject } from 'rx';
 import fetchFruits from './fetchFruits';
 
-const initalFruitsState = { records: [], loading: false };
+const initialFruitsState = { records: [], loading: false };
 
 // Reducer
-function fruits(state = initalFruitsState, action) {
+function fruits(state = initialFruitsState, action) {
   switch (action.type) {
-  case 'FETCH_FRUITS':
-    // can return a Observable object to future change of state
-    const state$ = new BehaviorSubject({ ...state, loading: true });
-    fetchFruits((err, records) => {
-      if (err) { return state$.onError(err) }
-      state$.onNext({ loading: false, records });
-      state$.onCompleted();
-    });
-    return state$;
-  case 'CLEAR_FRUITS':
-    // can also return synchronous state change, of course.
-    return initalFruitsState;
-  default:
-    return state;
+    case 'FETCH_FRUITS':
+      // can return a Observable object to future change of state
+      const state$ = new BehaviorSubject({ ...state, loading: true });
+      fetchFruits((err, records) => {
+        if (err) { return state$.onError(err) }
+        state$.onNext({ loading: false, records });
+        state$.onCompleted();
+      });
+      return state$;
+    case 'CLEAR_FRUITS':
+      // can also return synchronous state change, of course.
+      return initialFruitsState;
+    default:
+      return state;
   }
 }
 
-let store = createStore(fluits);
+const store = createStore(fruits);
 
-store.subscribe((records) => {
-  console.log(records);
+store.subscribe((state) => {
+  console.log(state);
 });
 
 // => { loading: false, records: [] }

@@ -3,10 +3,10 @@ import { BehaviorSubject } from 'rx';
 import fetchFruits from '../utils/fetchFruits';
 import wait from '../utils/wait';
 
-const initalFruitsState = { records: [], loading: false };
+const initialFruitsState = { records: [], loading: false };
 
 // Reducer
-function fruits(state = initalFruitsState, action) {
+function fruits(state = initialFruitsState, action) {
   switch (action.type) {
     case 'FETCH_FRUITS':
       // can return a Observable object to future change of state
@@ -19,7 +19,7 @@ function fruits(state = initalFruitsState, action) {
       return state$;
     case 'CLEAR_FRUITS':
       // can also return synchronous state change, of course.
-      return initalFruitsState;
+      return initialFruitsState;
     default:
       return state;
   }
@@ -27,8 +27,8 @@ function fruits(state = initalFruitsState, action) {
 
 const store = createStore(fruits);
 
-store.subscribe((records) => {
-  console.log(records);
+store.subscribe((state) => {
+  console.log(state);
 });
 
 // => { loading: false, records: [] }
