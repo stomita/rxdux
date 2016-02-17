@@ -34,7 +34,7 @@ function createState(reducer, action$, errorHandler) {
       return nextState$;
     })
     .skip(1)
-    .flatMapLatest((state$) => state$)
+    .flatMap((state$) => state$)
     .distinctUntilChanged()
     .debounce(0)
     .shareReplay(1)
