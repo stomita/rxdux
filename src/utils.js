@@ -4,6 +4,10 @@ export function isObservable(o) {
   return o !== null && typeof o === 'object' && typeof o.subscribe === 'function';
 }
 
+export function isFunction(o) {
+  return typeof o === 'function';
+}
+
 export function isPromiseLike(o) {
   return o !== null && typeof o === 'object' && typeof o.then === 'function';
 }
@@ -52,6 +56,11 @@ export function fromGenerator(gen) {
   return sub$.skip(1);
 }
 
+export function fromFunction(fn) {
+  return Observable.create((o) => {
+    fn(o.onNext.bind(o), o.onError.bind(o), o.onCompleted.bind(o));
+  });
+}
 
 /**
  *
@@ -70,6 +79,7 @@ export function toObservable(o) {
     isObservable(o) ? o :
     isPromiseLike(o) ? Observable.fromPromise(o) :
     isGeneratorFunction(o) || isGenerator(o) ? fromGenerator(o) :
+    isFunction(o) ? fromFunction(o) :
     Observable.of(o)
   );
 }

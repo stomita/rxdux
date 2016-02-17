@@ -1,5 +1,5 @@
 import { createStore } from 'rxdux';
-import { BehaviorSubject } from 'rx';
+import { Observable } from 'rx';
 import fetchFruits from '../utils/fetchFruits';
 import wait from '../utils/wait';
 
@@ -10,13 +10,14 @@ function fruits(state = initialFruitsState, action) {
   switch (action.type) {
     case 'FETCH_FRUITS':
       // can return a Observable object to future change of state
-      const state$ = new BehaviorSubject({ ...state, loading: true });
-      fetchFruits((err, records) => {
-        if (err) { return state$.onError(err) }
-        state$.onNext({ records, loading: false });
-        state$.onCompleted();
+      return Observable.create((o) => {
+        o.onNext({ ...state, loading: true });
+        fetchFruits((err, records) => {
+          if (err) { return state$.onError(err) }
+          o.onNext({ records, loading: false });
+          o.onCompleted();
+        });
       });
-      return state$;
     case 'CLEAR_FRUITS':
       // can also return synchronous state change, of course.
       return initialFruitsState;

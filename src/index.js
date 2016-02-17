@@ -8,8 +8,8 @@ function defaultErrorRecoveryHandler(err, prevState) {
   return prevState;
 }
 
-function createState(reducer, action$, errorHandler) {
-  const initState$ = Observable.of(undefined);
+function createState(reducer, initState, action$, errorHandler) {
+  const initState$ = Observable.of(initState);
   return Observable.of(initState$)
     .concat(action$)
     .scan((prevState$, action) => {
@@ -19,7 +19,7 @@ function createState(reducer, action$, errorHandler) {
         .last()
         .doAction(() => DEBUG && console.log('>>> action =', action))
         .map((prevState) => {
-          const state$ = toObservable(reducer(prevState, action)).share();
+          const state$ = toObservable(reducer(prevState, action)).shareReplay(1);
           state$.subscribeOnError((err) => {
             toObservable(errorHandler(err, prevState))
               .subscribe(recoveryState$);
@@ -97,13 +97,21 @@ export function assignSelectors(reducer, selectors) {
 /**
  *
  */
-export function createStore(reducer, errorRecoveryHandler = defaultErrorRecoveryHandler) {
+export function createStore(reducer, initialState, errorRecoveryHandler = defaultErrorRecoveryHandler) {
   const action$ = new BehaviorSubject({ type: '@@rxdux/INIT' });
-  const state$ = createState(reducer, action$, errorRecoveryHandler);
+  const state$ = createState(reducer, initialState, action$, errorRecoveryHandler);
+  let currState = initialState;
+  state$.subscribe((state) => currState = state);
   return {
-    dispatch: (action) => action$.onNext(action),
-    subscribe: (...args) => state$.subscribe(...args),
-    getState: () => state$.getValue()
+    dispatch(action) {
+      return action$.onNext(action);
+    },
+    subscribe(...args) {
+      return state$.subscribe(...args);
+    },
+    getState() {
+      return currState;
+    }
   };
 }
 
