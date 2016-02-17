@@ -4,6 +4,7 @@
   "description": "Yet another flux implementation based on redux with asynchronous reducer feature",
   "main": "./lib/index.js",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "babel src -d lib",
     "test": "mocha --require babel-register --require babel-polyfill",
     "test:watch": "npm test && chokidar \"**/*.js\" -c \"npm test\"",
