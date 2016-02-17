@@ -36,20 +36,34 @@ export function stringReducer(state = '', action) {
   }
 }
 
-export function numPromiseReducer(state = 1, action) {
+export function numPromiseReducer(state = 0, action) {
   switch (action.type) {
     case 'ADD':
-      return wait(100).then(() => {
+      return wait(50).then(() => {
         const value = Number(action.value);
         if (isNaN(value)) { throw new Error('value is not a number'); }
         return state + value;
       });
     case 'RESET':
-      return wait(80).then(() => 0);
+      return wait(100).then(() => 0);
     default:
       return state;
   }
 }
+
+export function numObservableReducer(state = 0, action) {
+  switch (action.type) {
+    case 'ADD':
+      return Observable.interval(50)
+        .take(action.value)
+        .map((i) => state + i + 1);
+    case 'RESET':
+      return Observable.of(0).delay(100);
+    default:
+      return state;
+  }
+}
+
 
 export function stringObservableReducer(state = '', action) {
   switch (action.type) {
