@@ -1,5 +1,7 @@
 # Rxdux
 
+[![Build Status](https://travis-ci.org/stomita/rxdux.svg?branch=master)](https://travis-ci.org/stomita/rxdux)
+
 Yet another flux implementation based on redux with asynchronous reducer feature
 
 ## Abstract
