@@ -133,7 +133,7 @@ function fruits(state = initialFruitsState, action) {
       return (next, error, complete) => {
         next({ ...state, loading: true });
         fetchFruits((err, records) => {
-          if (err) { return error(err) }
+          if (err) { return error(err); }
           next({ records, loading: false });
           complete();
         });
@@ -191,8 +191,9 @@ function fruits(state = initialFruitsState, action) {
       // can return a generator function
       return function* () {
         yield { ...state, loading: true };
+        // Nested generator function is ok but only top-level yield affects to the state changes.
         yield function* () {
-          const records = yield fetchFruitsPromise(); // only top-level yielded result affects to the state changes.
+          const records = yield fetchFruitsPromise();
           yield { records, loading: false };
         };
       };
