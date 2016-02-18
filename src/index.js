@@ -36,7 +36,6 @@ function createState(reducer, initState, action$, errorHandler) {
     .skip(1)
     .flatMap((state$) => state$)
     .distinctUntilChanged()
-    .debounce(0)
     .shareReplay(1)
   ;
 }
@@ -107,7 +106,7 @@ export function createStore(reducer, initialState, errorRecoveryHandler = defaul
       return action$.onNext(action);
     },
     subscribe(...args) {
-      return state$.subscribe(...args);
+      return state$.debounce(0).subscribe(...args);
     },
     getState() {
       return currState;
