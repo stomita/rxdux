@@ -1,7 +1,7 @@
 import assert from 'power-assert';
 import { createStore } from '../src';
 import wait from './utils/wait';
-import { numReducer, numPromiseReducer, numObservableReducer } from './utils/reducers';
+import { numReducer, numPromiseReducer, numObservableReducer, numThunkReducer, numGeneratorReducer } from './utils/reducers';
 
 /**
  *
@@ -67,4 +67,46 @@ describe('createStore', () => {
     await wait(200);
     assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
   });
+
+  /**
+   *
+   */
+  it('should create store for thunk reducer', async () => {
+    const states = [];
+    const numStore = createStore(numThunkReducer);
+    numStore.subscribe((n) => states.push(n));
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 2 });
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 5 });
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
+    await wait(200);
+    numStore.dispatch({ type: 'RESET' });
+    await wait(200);
+    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
+  });
+
+  /**
+   *
+   */
+  it('should create store for generator function / generator reducer', async () => {
+    const states = [];
+    const numStore = createStore(numGeneratorReducer);
+    numStore.subscribe((n) => states.push(n));
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 2 });
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 5 });
+    await wait(200);
+    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
+    await wait(200);
+    numStore.dispatch({ type: 'RESET' });
+    await wait(200);
+    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
+  });
+
+
 });

@@ -64,6 +64,56 @@ export function numObservableReducer(state = 0, action) {
   }
 }
 
+export function numThunkReducer(state = 0, action) {
+  switch (action.type) {
+    case 'ADD':
+      return (next, error, complete) => {
+        function inc(i) {
+          setTimeout(() => {
+            next(state + i);
+            if (i >= action.value) {
+              complete();
+            } else {
+              inc(i + 1);
+            }
+          }, 50);
+        }
+        inc(1);
+      };
+    case 'RESET':
+      return (next) => {
+        setTimeout(() => next(0), 100);
+      };
+    default:
+      return state;
+  }
+}
+
+
+export function numGeneratorReducer(state = 0, action) {
+  switch (action.type) {
+    case 'ADD':
+      return function* () {
+        function* inc(n) {
+          yield wait(50);
+          yield state + n;
+        }
+        for (let i = 1; i <= action.value; i++) {
+          yield inc(i);
+        }
+      };
+    case 'RESET':
+      return function* () {
+        yield wait(100);
+        yield 0;
+      };
+    default:
+      return state;
+  }
+}
+
+
+
 
 export function stringObservableReducer(state = '', action) {
   switch (action.type) {
