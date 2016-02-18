@@ -14,9 +14,19 @@ The reducer can return a promise of state change or a sequence of state changes.
 The first is done by `Promise` object, and the second is done by `Observable` in Rx world.
 Thunk function or generator function can also be used to yield the state changes.
 
-## Examples
 
-### Promise Reducer
+## Guide
+
+### Reducers
+
+The reducer is a pure function, which accepts state and action and returns next state as in original Redux,
+except that it can return a wrapping type to represent the future states.
+
+```typescript
+type Reducer<S> = (S, Action) => S | Promise<S> | Observable<S> | Thunk<S> | Generator<S>;
+```
+
+#### Promise Reducer
 
 ```es6
 import { createStore } from 'rxdux';
@@ -67,7 +77,7 @@ store.dispatch({ type: 'CLEAR_FRUITS' });
 ```
 
 
-### Observable Reducer
+#### Observable Reducer
 
 ```es6
 import { createStore } from 'rxdux';
@@ -116,7 +126,7 @@ store.dispatch({ type: 'CLEAR_FRUITS' });
 
 ```
 
-### Thunk Function Reducer
+#### Thunk Function Reducer
 
 ```es6
 import { createStore } from 'rxdux';
@@ -166,7 +176,7 @@ store.dispatch({ type: 'CLEAR_FRUITS' });
 ```
 
 
-### Generator Function Reducer
+#### Generator Function Reducer
 
 ```es6
 import { createStore } from 'rxdux';
@@ -223,3 +233,138 @@ store.dispatch({ type: 'CLEAR_FRUITS' });
 // => { loading: false, records: [] }
 
 ```
+
+
+### Combining Reducers
+
+The idea of combining reducers is also the same with Redux, but Redux's `combineReducer` cannot be used
+because it is not assuming that the reducers will yield asynchronous state changes.
+
+The `Rxdux` has its own `combineReducer` function to create a combined reducers.
+It can accept both simple synchronous and asynchronous reducers.
+
+```es6
+import { combineReducer, createStore } from 'rxdux';
+import wait from './wait';
+
+function num1(state = 0, action) {
+  switch (action.type) {
+    case 'APPLY':
+      return wait(100).then(() => state + action.value);
+    default:
+      return state;
+  }
+}
+
+function num2(state = 1, action) {
+  switch (action.type) {
+    case 'APPLY':
+      return wait(200).then(() => state * action.value);
+    default:
+      return state;
+  }
+}
+
+const reducer = combineReducer({ num1, num2 });
+
+const store = createStore(reducer);
+
+store.subscribe((state) => {
+  console.log(state);
+});
+
+// => { num1: 0, num2: 1 }
+
+store.dispatch({ type: 'APPLY', value: 2 });
+
+// => { num1: 2, num2: 1 }
+// => { num1: 2, num2: 2 }
+
+store.dispatch({ type: 'APPLY', value: 4 });
+
+// => { num1: 6, num2: 2 }
+// => { num1: 6, num2: 8 }
+
+```
+
+### Binding to React Components
+
+Because the interface of dispatching action / notifying state change is same as the original Redux,
+you can utilize the works related to Redux even in Rxdux.
+
+To binding the store information to React components, the `react-redux` package is the one and you can use it in Rxdux, too.
+
+```es6
+import 'babel-polyfill';
+
+import React, { Component } from 'react';
+import { render } from 'react-dom';
+import { Provider, connect } from 'react-redux';
+import { createStore } from 'rxdux';
+
+import wait from './wait';
+
+// simple reducer to count up gracefully
+function counter(state = 0, action) {
+  switch (action.type) {
+    case 'ADD':
+      return function* () {
+        for (let i = 0; i < action.value; i++) {
+          state = yield wait(100).then(() => state + 1);
+        }
+      };
+    case 'RESET':
+      return function* () {
+        while (state > 0) {
+          state = yield wait(100).then(() => state - 1);
+        }
+      };
+    default:
+      return state;
+  }
+}
+
+const store = createStore(counter);
+
+@connect(
+  (state) => ({ counter: state })
+)
+class Root extends Component {
+  render() {
+    return (
+      <div>
+        <div>{ this.props.counter }</div>
+        <button onClick={ () => this.props.dispatch({ type: 'ADD', value: 1 }) }>+1</button>
+        <button onClick={ () => this.props.dispatch({ type: 'ADD', value: 5 }) }>+5</button>
+        <button onClick={ () => this.props.dispatch({ type: 'RESET' }) }>Reset</button>
+      </div>
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <Provider store={ store }>
+        <Root />
+      </Provider>
+    );
+  }
+}
+
+render(<App />, document.getElementById('root'));
+
+```
+
+
+### Middlewares
+
+Middleware support is not done yet in Rxdux.
+In fact, some middlewares in Redux might be safely used because its store interface is almost same,
+but some middlewares which require the changed state information after the action (e.g. `redux-logger`) will not work
+because the state change will not always come right after the reducer call.
+
+
+## License
+
+MIT

@@ -6,7 +6,7 @@
   "jsnext:main": "./src/index.js",
   "scripts": {
     "prepublish": "npm run build",
-    "build": "babel src -d lib",
+    "build": "babel src -d lib --source-maps inline",
     "test": "mocha --require babel-register --require babel-polyfill",
     "test:watch": "npm test && chokidar \"**/*.js\" -c \"npm test\"",
     "coverage": "babel-node ./node_modules/.bin/isparta cover _mocha"
