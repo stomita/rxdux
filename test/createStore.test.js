@@ -18,14 +18,14 @@ describe('createStore', () => {
     await wait(200);
     numStore.dispatch({ type: 'ADD', value: 2 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 5 });
+    numStore.dispatch({ type: 'ADD', value: 4 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 2 });
     numStore.dispatch({ type: 'ADD', value: 1 }); // sequential action will be comacted
     await wait(200);
     numStore.dispatch({ type: 'RESET' });
     await wait(200);
-    assert.deepEqual(states, [0, 2, 7, 11, 0]);
+    assert.deepEqual(states, [0, 2, 6, 9, 0]);
   });
 
   /**
@@ -38,14 +38,14 @@ describe('createStore', () => {
     await wait(200);
     numStore.dispatch({ type: 'ADD', value: 2 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 5 });
+    numStore.dispatch({ type: 'ADD', value: 4 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 2 });
     numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
     await wait(200);
     numStore.dispatch({ type: 'RESET' });
     await wait(200);
-    assert.deepEqual(states, [0, 2, 7, 10, 11, 0]);
+    assert.deepEqual(states, [0, 2, 6, 8, 9, 0]);
   });
 
   /**
@@ -58,14 +58,14 @@ describe('createStore', () => {
     await wait(200);
     numStore.dispatch({ type: 'ADD', value: 2 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 5 });
+    numStore.dispatch({ type: 'ADD', value: 4 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 2 });
     numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
     await wait(200);
     numStore.dispatch({ type: 'RESET' });
     await wait(200);
-    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
+    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   });
 
   /**
@@ -78,14 +78,14 @@ describe('createStore', () => {
     await wait(200);
     numStore.dispatch({ type: 'ADD', value: 2 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 5 });
+    numStore.dispatch({ type: 'ADD', value: 4 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 2 });
     numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
     await wait(200);
     numStore.dispatch({ type: 'RESET' });
     await wait(200);
-    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
+    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   });
 
   /**
@@ -98,14 +98,14 @@ describe('createStore', () => {
     await wait(200);
     numStore.dispatch({ type: 'ADD', value: 2 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 5 });
+    numStore.dispatch({ type: 'ADD', value: 4 });
     await wait(200);
-    numStore.dispatch({ type: 'ADD', value: 3 });
+    numStore.dispatch({ type: 'ADD', value: 2 });
     numStore.dispatch({ type: 'ADD', value: 1 }); // called before the prev promise return
     await wait(200);
     numStore.dispatch({ type: 'RESET' });
     await wait(200);
-    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]);
+    assert.deepEqual(states, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   });
 
 
