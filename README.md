@@ -90,11 +90,11 @@ const initialFruitsState = { records: [], loading: false };
 function fruits(state = initialFruitsState, action) {
   switch (action.type) {
     case 'FETCH_FRUITS':
-      // can return a Observable object to future change of state
+      // can return a Observable object to notify future change of state
       return Observable.create((o) => {
         o.onNext({ ...state, loading: true });
         fetchFruits((err, records) => {
-          if (err) { return state$.onError(err) }
+          if (err) { return o.onError(err) }
           o.onNext({ records, loading: false });
           o.onCompleted();
         });
