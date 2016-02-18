@@ -237,14 +237,14 @@ store.dispatch({ type: 'CLEAR_FRUITS' });
 
 ### Combining Reducers
 
-The idea of combining reducers is also the same with Redux, but Redux's `combineReducer` cannot be used
+The idea of combining reducers is also the same with Redux, but Redux's `combineReducers` cannot be used
 because it is not assuming that the reducers will yield asynchronous state changes.
 
-The `Rxdux` has its own `combineReducer` function to create a combined reducers.
+The `Rxdux` has its own `combineReducers` function to create a combined reducers.
 It can accept both simple synchronous and asynchronous reducers.
 
 ```es6
-import { combineReducer, createStore } from 'rxdux';
+import { combineReducers, createStore } from 'rxdux';
 import wait from './wait';
 
 function num1(state = 0, action) {
@@ -265,7 +265,7 @@ function num2(state = 1, action) {
   }
 }
 
-const reducer = combineReducer({ num1, num2 });
+const reducer = combineReducers({ num1, num2 });
 
 const store = createStore(reducer);
 
