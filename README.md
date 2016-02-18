@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/stomita/rxdux.svg?branch=master)](https://travis-ci.org/stomita/rxdux)
 
-Yet another flux implementation based on redux with asynchronous reducer feature
+Yet another flux implementation based on redux, extending reducer to allow asynchronous state change.
 
 ## Abstract
 
@@ -359,7 +359,7 @@ render(<App />, document.getElementById('root'));
 
 ### Middlewares
 
-Middleware support is not done yet in Rxdux.
+Middleware support is not yet done in Rxdux.
 In fact, some middlewares in Redux might be safely used because its store interface is almost same,
 but some middlewares which require the changed state information after the action (e.g. `redux-logger`) will not work
 because the state change will not always come right after the reducer call.
