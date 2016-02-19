@@ -358,7 +358,7 @@ render(<App />, document.getElementById('root'));
 
 ### Avoid Blocking of State Changes by Preceding Actions
 
-As the store's state changes will be serialized by the order of incoming actions,
+As the store's state changes will be serialized according to the order of incoming actions,
 an application which accepts user's input simultaneously will not be responsive
 if the application's root store is built by one combined reducer function.
 
