@@ -356,6 +356,78 @@ render(<App />, document.getElementById('root'));
 
 ```
 
+### Avoid Blocking of State Changes by Preceding Actions
+
+As the store's state changes will be serialized by the order of incoming actions,
+an application which accepts user's input simultaneously will not be responsive
+if the application's root store is built by one combined reducer function.
+
+In Rxdux, instead of using one store and combined reducers, it is recommended to create multiple stores for each action serialization scope.
+Combining/merging stores is done by `combineStores`/`mergeStores`.
+
+```es6
+import { createStore, combineStores, mergeStores } from 'rxdux';
+import wait from './wait';
+
+function num(state = 0, action) {
+  switch (action.type) {
+    case 'ADD':
+      return wait(150).then(() => state + action.value);
+    default:
+      return state;
+  }
+}
+
+function string(state = 'abc', action) {
+  switch (action.type) {
+    case 'APPEND':
+      return wait(50).then(() => state + action.value);
+    default:
+      return state;
+  }
+}
+
+function obj(state = { checked: false }, action) {
+  switch (action.type) {
+    case 'FLICK':
+      return function*() {
+        yield { checked: true };
+        yield wait(100).then(() => { checked: false });
+      }
+    default:
+      return state;
+  }
+}
+
+const numStore = createStore(num);
+const stringStore = createStore(string);
+const objStore = createStore(obj);
+const store = mergeStores(
+  combineStores({ num: numStore, string: stringStore }),
+  objStore
+);
+
+store.subscribe((state) => {
+  console.log(state);
+});
+
+// => { num: 0, string: 'abc', checked: false }
+
+store.dispatch({ type: 'ADD', value: 1 });
+store.dispatch({ type: 'APPEND', value: 'def' });
+store.dispatch({ type: 'FLICK' });
+
+// => { num: 0, string: 'abc', checked: true }
+// => { num: 0, string: 'abcdef', checked: true }
+// => { num: 0, string: 'abcdef', checked: false }
+// => { num: 1, string: 'abcdef', checked: false }
+
+```
+
+### Error Handling
+
+TODO
+
 
 ### Middlewares
 
