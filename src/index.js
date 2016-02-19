@@ -1,4 +1,4 @@
-import { Observable, BehaviorSubject, ReplaySubject } from 'rx';
+import { Observable, Subject, BehaviorSubject, ReplaySubject } from 'rx';
 import { toObservable, toPromise } from './utils';
 
 const DEBUG = process.env.DEBUG;
@@ -93,26 +93,92 @@ export function assignSelectors(reducer, selectors) {
   };
 }
 
+
+/**
+ *
+ */
+class Store {
+  constructor(action$, state$) {
+    this._action$ = action$;
+    this._state$ = state$;
+    this._currState = undefined;
+    this._state$.subscribe((state) => this._currState = state);
+  }
+
+  dispatch(action) {
+    return this._action$.onNext(action);
+  }
+
+  subscribe(...args) {
+    return this._state$.debounce(0).subscribe(...args);
+  }
+
+  getState() {
+    return this._currState;
+  }
+
+  getObservable() {
+    return this._state$;
+  }
+}
+
+
 /**
  *
  */
 export function createStore(reducer, initialState, errorRecoveryHandler = defaultErrorRecoveryHandler) {
   const action$ = new BehaviorSubject({ type: '@@rxdux/INIT' });
   const state$ = createState(reducer, initialState, action$, errorRecoveryHandler);
-  let currState = initialState;
-  state$.subscribe((state) => currState = state);
-  return {
-    dispatch(action) {
-      return action$.onNext(action);
-    },
-    subscribe(...args) {
-      return state$.debounce(0).subscribe(...args);
-    },
-    getState() {
-      return currState;
-    }
-  };
+  return new Store(action$, state$);
 }
+
+
+/**
+ *
+ */
+export function combineStores(stores) {
+  const isArrayStores = Array.isArray(stores);
+  const cnames = Object.keys(stores);
+  const cstores = isArrayStores ? stores : cnames.map((cname) => stores[cname]);
+  const cstates$ = cstores.map((cstore) => cstore.getObservable());
+  const state$ = Observable.combineLatest(...cstates$, (...cstates) => {
+    return isArrayStores ? cstates : cstates.reduce((state, cstate, i) => {
+      const cname = cnames[i];
+      return { ...state, [cname]: cstate };
+    }, {});
+  })
+  .shareReplay(1);
+  const action$ = new Subject();
+  action$.subscribe((action) => {
+    cstores.forEach((cstore) => cstore.dispatch(action));
+  });
+  return new Store(action$, state$);
+}
+
+/**
+ *
+ */
+export function mergeStores(...stores) {
+  const cstates$ = stores.map((cstore) => cstore.getObservable());
+  const state$ = Observable.of({})
+    .concat(Observable.merge(...cstates$))
+    .scan((state, cstate) => {
+      return Object.keys(cstate).reduce((s, prop) => {
+        const value = cstate[prop];
+        return s[prop] === value ? s : { ...s, [prop]: value };
+      }, state);
+    })
+    .skip(1)
+    .distinctUntilChanged()
+    .shareReplay(1)
+  ;
+  const action$ = new Subject();
+  action$.subscribe((action) => {
+    stores.forEach((cstore) => cstore.dispatch(action));
+  });
+  return new Store(action$, state$);
+}
+
 
 /**
  *
